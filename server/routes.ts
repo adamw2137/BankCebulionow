@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import storage from "./storage"; // ✅ default import
 import { insertUserSchema, loginSchema, updateUserSchema } from "@shared/schema";
 import session from "express-session";
 
@@ -21,10 +21,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       resave: false,
       saveUninitialized: false,
       cookie: {
-  httpOnly: true,
-  secure: false, // teraz działa zarówno na HTTP, jak i HTTPS
-  maxAge: 1000 * 60 * 60 * 24, // ciasteczko ważne 1 dzień
-},
+        httpOnly: true,
+        secure: false, // teraz działa zarówno na HTTP, jak i HTTPS
+        maxAge: 1000 * 60 * 60 * 24, // ciasteczko ważne 1 dzień
+      },
     })
   );
 
