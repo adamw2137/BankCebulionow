@@ -1,7 +1,6 @@
 // server/storage.ts
 import { supabase } from "./supabaseClient";
 
-// Typ użytkownika
 export interface User {
   id: string;
   username: string;
@@ -9,14 +8,12 @@ export interface User {
   balance: number;
 }
 
-// Funkcje storage
 async function createUser(user: { username: string; password: string; balance?: number }) {
   const { data, error } = await supabase
     .from("users")
     .insert([{ username: user.username, password: user.password, balance: user.balance || 0 }])
     .select()
     .single();
-
   if (error) throw error;
   return data as User;
 }
@@ -27,7 +24,6 @@ async function getUserByUsername(username: string) {
     .select("*")
     .eq("username", username)
     .single();
-
   if (error && error.code !== "PGRST116") throw error;
   return data as User | null;
 }
@@ -38,7 +34,6 @@ async function getUser(id: string) {
     .select("*")
     .eq("id", id)
     .single();
-
   if (error && error.code !== "PGRST116") throw error;
   return data as User | null;
 }
@@ -56,16 +51,14 @@ async function updateUser(id: string, updated: { username?: string; password?: s
     .eq("id", id)
     .select()
     .single();
-
   if (error) throw error;
   return data as User;
 }
 
-// Default export jako jeden obiekt
+// Poprawny default export (bez duplikatów)
 const storage = {
   createUser,
   getUserByUsername,
-  getUser,
   getUser,
   getAllUsers,
   updateUser,
