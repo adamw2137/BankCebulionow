@@ -1,105 +1,136 @@
-# Bank Cebulionów
+# Bank Cebulionów - System Bankowy
 
-## Overview
+## Opis Projektu
+Aplikacja bankowa "Bank Cebulionów" z polskim interfejsem użytkownika. System umożliwia rejestrację użytkowników, logowanie, przeglądanie salda konta oraz zarządzanie kontami przez administratora.
 
-Bank Cebulionów is a Polish-language banking system application built with a modern React frontend and Express backend. The application provides user account management, authentication, and an administrative dashboard for managing user accounts and balances. The name suggests an educational or playful approach to banking functionality, while maintaining professional design standards for financial applications.
+## Funkcjonalności MVP
 
-## User Preferences
+### Strona Główna (Login)
+- Formularz logowania z polami: login i hasło
+- Przycisk "Zaloguj" do logowania użytkowników
+- Przycisk "Zarejestruj się" przekierowujący do rejestracji
+- Przycisk "Logowanie admin" w prawym górnym rogu
 
-Preferred communication style: Simple, everyday language.
+### Rejestracja
+- Formularz rejestracji z polami:
+  - Login
+  - Hasło
+  - Powtórz hasło (z walidacją zgodności)
+- Po udanej rejestracji powrót do strony logowania
+- Początkowe saldo konta: 0.00 PLN
 
-## System Architecture
+### Panel Użytkownika
+- Powitanie: "Witaj, [nazwa użytkownika]"
+- Wyświetlanie aktualnego stanu konta w PLN
+- Informacje o numerze konta, typie i statusie
+- Przycisk "Wyloguj się"
 
-### Frontend Architecture
+### Panel Administratora
+- Dostęp tylko dla administratora (login: admin, hasło: admingorka)
+- Osobna strona logowania administratora
+- Tabela ze wszystkimi kontami użytkowników zawierająca:
+  - Login (edytowalny)
+  - Hasło (edytowalne)
+  - Saldo w PLN (edytowalne)
+- Możliwość edycji każdego pola dla każdego użytkownika
+- Przyciski "Edytuj", "Zapisz" i "Anuluj" dla każdego wiersza
+- Przycisk "Wyloguj się"
 
-**Technology Stack**: React with TypeScript, Vite build system, and Wouter for client-side routing.
+## Architektura Techniczna
 
-**UI Framework**: The application uses shadcn/ui component library with Radix UI primitives, providing accessible and customizable components. The design system follows Material Design principles adapted for financial applications, emphasizing trust, clarity, and proper Polish language support.
+### Frontend
+- **Framework**: React z TypeScript
+- **Routing**: Wouter
+- **Komponenty UI**: Shadcn/ui + Tailwind CSS
+- **Formularze**: React Hook Form z walidacją Zod
+- **Zarządzanie stanem**: TanStack Query (React Query)
+- **Ikony**: Lucide React
 
-**Design System**: 
-- Custom Tailwind CSS configuration with design tokens for light/dark mode
-- Color palette focused on trust (deep blue primary) and financial growth (teal secondary)
-- Typography using Inter font family for excellent Polish character support (ą, ć, ę, ł, ń, ó, ś, ź, ż)
-- Spacing system based on Tailwind primitives (2, 4, 6, 8, 12, 16, 20, 24)
+### Backend
+- **Framework**: Express.js
+- **Sesje**: Express-session
+- **Walidacja**: Zod schemas
+- **Przechowywanie danych**: In-memory storage (Map)
 
-**State Management**: TanStack Query (React Query) for server state management with custom query client configuration, including credential handling and error management.
+### Struktura Danych
+```typescript
+User {
+  id: string (UUID)
+  username: string (unique)
+  password: string
+  balance: decimal(10,2) (domyślnie "0.00")
+}
+```
 
-**Form Handling**: React Hook Form with Zod schema validation for type-safe form validation.
+## API Endpoints
 
-**Routing Strategy**: Client-side routing with protected routes - separate authentication flows for regular users and administrators.
+### Autoryzacja
+- `POST /api/auth/register` - Rejestracja nowego użytkownika
+- `POST /api/auth/login` - Logowanie użytkownika
+- `POST /api/auth/admin-login` - Logowanie administratora
+- `GET /api/auth/me` - Pobranie danych zalogowanego użytkownika
+- `GET /api/auth/check-admin` - Sprawdzenie statusu administratora
+- `POST /api/auth/logout` - Wylogowanie
 
-### Backend Architecture
+### Zarządzanie (Admin)
+- `GET /api/admin/users` - Lista wszystkich użytkowników (tylko admin)
+- `PUT /api/admin/users/:id` - Aktualizacja danych użytkownika (tylko admin)
 
-**Framework**: Express.js with TypeScript running on Node.js.
+## Dane Dostępowe
 
-**Session Management**: Express-session with configurable session secrets and cookie settings (httpOnly, secure in production, 24-hour expiration).
+### Administrator
+- **Login**: admin
+- **Hasło**: admingorka
 
-**Authentication**: Session-based authentication with separate login flows:
-- User authentication via `/api/auth/login` and `/api/auth/register`
-- Admin authentication via `/api/auth/admin-login` with hardcoded credentials (username: "admin", password: "admingorka")
-- Session data stores `userId` and `isAdmin` flag
+### Użytkownicy
+Użytkownicy mogą się samodzielnie rejestrować z dowolnymi danymi logowania.
 
-**Data Storage**: The application uses an in-memory storage implementation (`MemStorage` class) as the current data layer, implementing the `IStorage` interface. This provides methods for user CRUD operations (getUser, getUserByUsername, createUser, getAllUsers, updateUser).
+## Przechowywanie Danych
+Wszystkie dane (login, hasło, saldo) są przechowywane w pamięci aplikacji (MemStorage) i są w pełni edytowalne przez administratora w panelu zarządzania. Jest to celowy wybór projektowy umożliwiający łatwą edycję wszystkich pól przez administratora, zgodnie z wymaganiami projektu edukacyjnego.
 
-**Schema Validation**: Drizzle-Zod integration for runtime validation of user data with PostgreSQL schema definitions ready for migration from in-memory storage.
+**Uwaga**: Hasła są przechowywane w formie tekstowej (nie hashowane), aby administrator mógł je przeglądać i edytować w panelu. To rozwiązanie jest odpowiednie dla aplikacji edukacyjnych/demonstracyjnych, ale nie powinno być stosowane w środowisku produkcyjnym.
 
-**API Structure**:
-- `/api/auth/*` - Authentication endpoints (register, login, logout, admin-login, check-admin, me)
-- `/api/admin/*` - Administrative endpoints for user management
+## Projekt Wizualny
 
-### Data Storage Solutions
+### Paleta Kolorów
+- **Primary**: Niebieski (210 100% 45%) - zaufanie i stabilność bankowa
+- **Secondary**: Teal (160 70% 45%) - wzrost finansowy
+- **Success**: Zielony (140 70% 45%) - dodatnie salda
+- **Destructive**: Czerwony (dla panelu admin)
 
-**Current Implementation**: In-memory storage using Map data structure for development/testing purposes.
+### Typografia
+- **Font**: Inter (Google Fonts) - doskonałe wsparcie polskich znaków
+- **Rozmiary**: Responsywne, hierarchiczne
 
-**Planned Database**: PostgreSQL configured via Drizzle ORM with Neon serverless driver. The database schema is defined and ready for migration:
-- `users` table with id (UUID primary key), username (unique text), password (text), and balance (decimal with 10,2 precision)
+### Komponenty
+- Gradient tła na stronach logowania
+- Karty z cieniami i zaokrąglonymi rogami
+- Przyciski z responsywnymi stanami hover/active
+- Tabela z edytowalnymi wierszami w panelu admin
+- Toast notifications dla komunikatów
 
-**Migration Strategy**: Drizzle Kit configured for schema migrations to PostgreSQL when transitioning from in-memory to persistent storage.
+## Uruchomienie Projektu
 
-### Authentication and Authorization
+Aplikacja jest już skonfigurowana i uruchomiona. Workflow "Start application" automatycznie:
+1. Uruchamia serwer Express na porcie 5000
+2. Uruchamia frontend Vite dev server
+3. Obsługuje hot reload dla zmian w kodzie
 
-**User Authentication**: Password-based authentication with username/password credentials. Passwords are currently stored in plain text (security concern for production).
+## Testowanie
+Aplikacja została przetestowana end-to-end obejmując:
+- ✅ Rejestrację nowego użytkownika
+- ✅ Logowanie użytkownika
+- ✅ Wyświetlanie dashboardu z saldem
+- ✅ Wylogowanie użytkownika
+- ✅ Logowanie administratora
+- ✅ Edycję danych użytkownika (login, hasło, saldo)
+- ✅ Wylogowanie administratora
 
-**Session Strategy**: Server-side sessions with Express-session middleware. Session cookies are HTTP-only and secure in production environments.
+## Język Interfejsu
+Cała aplikacja wykorzystuje polski język:
+- Wszystkie przyciski, etykiety i komunikaty w języku polskim
+- Poprawna obsługa polskich znaków diakrytycznych (ą, ć, ę, ł, ń, ó, ś, ź, ż)
+- Komunikaty błędów i powiadomienia w języku polskim
 
-**Authorization Levels**: Two-tier access control:
-1. Regular users - can view their own account dashboard and balance
-2. Administrators - can view all users, edit user details, and modify account balances
-
-**Protected Routes**: Client-side route protection using React Query to check authentication status before rendering protected components.
-
-### External Dependencies
-
-**UI Component Libraries**:
-- Radix UI primitives for accessible component foundations
-- shadcn/ui component system with "new-york" style variant
-- Lucide React for iconography
-
-**Database & ORM**:
-- Drizzle ORM for type-safe database queries
-- @neondatabase/serverless for PostgreSQL connectivity
-- Drizzle Kit for schema migrations
-
-**Form & Validation**:
-- React Hook Form for form state management
-- Zod for schema validation
-- @hookform/resolvers for integrating Zod with React Hook Form
-
-**Development Tools**:
-- Vite with React plugin for development and build
-- TSX for TypeScript execution in development
-- esbuild for production server bundling
-- Replit-specific plugins for development experience (cartographer, dev-banner, runtime-error-modal)
-
-**Styling**:
-- Tailwind CSS with PostCSS processing
-- class-variance-authority for component variant management
-- clsx and tailwind-merge for className composition
-
-**Routing & State**:
-- Wouter for lightweight client-side routing
-- TanStack Query v5 for server state management
-
-**Date Handling**: date-fns for date formatting and manipulation
-
-**Session Storage**: connect-pg-simple for PostgreSQL-backed session storage (when migrating from in-memory)
+## Status Projektu
+✅ **MVP Ukończone** - Wszystkie wymagane funkcjonalności zostały zaimplementowane i przetestowane.

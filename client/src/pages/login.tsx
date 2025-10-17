@@ -28,7 +28,7 @@ export default function Login() {
     mutationFn: async (data: LoginUser) => {
       return await apiRequest("POST", "/api/auth/login", data);
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Zalogowano pomyślnie",
         description: `Witaj, ${data.username}!`,
