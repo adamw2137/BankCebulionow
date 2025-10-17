@@ -61,10 +61,11 @@ async function updateUser(id: string, updated: { username?: string; password?: s
   return data as User;
 }
 
-// Tworzymy jeden obiekt default export
+// Default export jako jeden obiekt
 const storage = {
   createUser,
   getUserByUsername,
+  getUser,
   getUser,
   getAllUsers,
   updateUser,
