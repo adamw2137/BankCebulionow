@@ -21,10 +21,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 1000 * 60 * 60 * 24,
-      },
+  httpOnly: true,
+  secure: false, // teraz działa zarówno na HTTP, jak i HTTPS
+  maxAge: 1000 * 60 * 60 * 24, // ciasteczko ważne 1 dzień
+},
     })
   );
 
