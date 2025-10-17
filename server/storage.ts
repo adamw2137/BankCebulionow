@@ -1,62 +1,67 @@
-import { type User, type InsertUser, type UpdateUser } from "@shared/schema";
-import { randomUUID } from "crypto";
+// server/storage.ts
+import { supabase } from "./supabaseClient";
 
-export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  getAllUsers(): Promise<User[]>;
-  updateUser(id: string, user: UpdateUser): Promise<User>;
+// Typ użytkownika (dopasuj do swojego schema)
+export interface User {
+  id: string;
+  username: string;
+  password: string;
+  balance: number;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+// Tworzenie nowego użytkownika
+export async function createUser(user: { username: string; password: string; balance?: number }) {
+  const { data, error } = await supabase
+    .from("users")
+    .insert([{ username: user.username, password: user.password, balance: user.balance || 0 }])
+    .select()
+    .single();
 
-  constructor() {
-    this.users = new Map();
-  }
-
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { 
-      ...insertUser, 
-      id,
-      balance: insertUser.balance || "0.00"
-    };
-    this.users.set(id, user);
-    return user;
-  }
-
-  async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
-  }
-
-  async updateUser(id: string, updateData: UpdateUser): Promise<User> {
-    const existingUser = this.users.get(id);
-    if (!existingUser) {
-      throw new Error("Użytkownik nie istnieje");
-    }
-
-    const updatedUser: User = {
-      ...existingUser,
-      username: updateData.username,
-      password: updateData.password,
-      balance: updateData.balance,
-    };
-
-    this.users.set(id, updatedUser);
-    return updatedUser;
-  }
+  if (error) throw error;
+  return data as User;
 }
 
-export const storage = new MemStorage();
+// Pobranie użytkownika po nazwie użytkownika
+export async function getUserByUsername(username: string) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("username", username)
+    .single();
+
+  if (error && error.code !== "PGRST116") throw error; // PGRST116 = brak wiersza
+  return data as User | null;
+}
+
+// Pobranie użytkownika po id
+export async function getUser(id: string) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error && error.code !== "PGRST116") throw error;
+  return data as User | null;
+}
+
+// Pobranie wszystkich użytkowników (dla admina)
+export async function getAllUsers() {
+  const { data, error } = await supabase.from("users").select("*");
+  if (error) throw error;
+  return data as User[];
+}
+
+// Aktualizacja użytkownika po id
+export async function updateUser(id: string, updated: { username?: string; password?: string; balance?: number }) {
+  const { data, error } = await supabase
+    .from("users")
+    .update(updated)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as User;
+}
+
